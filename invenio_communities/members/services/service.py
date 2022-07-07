@@ -11,7 +11,6 @@
 
 from datetime import datetime, timezone
 
-from elasticsearch_dsl.query import Q
 from flask import current_app
 from flask_babelex import gettext as _
 from invenio_access.permissions import system_identity
@@ -29,6 +28,7 @@ from invenio_records_resources.services.uow import (
 )
 from invenio_requests import current_events_service, current_requests_service
 from invenio_requests.customizations.event_types import CommentEventType
+from invenio_search.engine import dsl
 from marshmallow import ValidationError
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm.exc import NoResultFound
@@ -320,7 +320,7 @@ class MemberService(RecordService):
             "members_search",
             self.member_dump_schema,
             self.config.search,
-            extra_filter=Q("term", **{"active": True}),
+            extra_filter=dsl.Q("term", **{"active": True}),
             params=params,
             es_preference=es_preference,
             **kwargs
@@ -342,7 +342,7 @@ class MemberService(RecordService):
             self.public_dump_schema,
             self.config.search_public,
             extra_filter=(
-                Q("term", **{"visible": True}) & Q("term", **{"active": True})
+                dsl.Q("term", **{"visible": True}) & dsl.Q("term", **{"active": True})
             ),
             params=params,
             es_preference=es_preference,
@@ -363,7 +363,7 @@ class MemberService(RecordService):
             self.invitation_dump_schema,
             self.config.search_invitations,
             record_cls=ArchivedInvitation,
-            extra_filter=Q("term", **{"active": False}),
+            extra_filter=dsl.Q("term", **{"active": False}),
             params=params,
             es_preference=es_preference,
             **kwargs
@@ -386,7 +386,7 @@ class MemberService(RecordService):
         self.require_permission(identity, permission_action, record=community)
 
         # Apply extra filters
-        filter = Q("term", **{"community_id": community.id})
+        filter = dsl.Q("term", **{"community_id": community.id})
         if extra_filter:
             filter &= extra_filter
 

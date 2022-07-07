@@ -9,8 +9,6 @@
 """Command-line tools for demo module."""
 
 import click
-from elasticsearch.exceptions import RequestError
-from elasticsearch_dsl import Index
 from faker import Faker
 from flask import current_app
 from flask.cli import with_appcontext
@@ -22,8 +20,7 @@ from invenio_records_resources.services.custom_fields.mappings import Mapping
 from invenio_records_resources.services.custom_fields.validate import (
     validate_custom_fields,
 )
-from invenio_search import current_search_client
-from invenio_search.utils import build_alias_name
+from invenio_search.engine import search
 
 from .fixtures.demo import create_fake_community
 from .fixtures.tasks import create_demo_community
@@ -107,7 +104,7 @@ def create_communities_custom_field(field_name):
         )
         communities_index.put_mapping(body={"properties": properties})
         click.secho("Created all communities custom fields!", fg="green")
-    except RequestError as e:
+    except search.RequestError as e:
         click.secho("An error occured while creating custom fields.", fg="red")
         click.secho(e.info["error"]["reason"], fg="red")
 

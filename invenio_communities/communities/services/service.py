@@ -10,8 +10,6 @@
 
 """Invenio Communities Service API."""
 
-from elasticsearch_dsl import Q
-from elasticsearch_dsl.query import Bool
 from flask import current_app
 from invenio_records_resources.services.base import LinksTemplate
 from invenio_records_resources.services.records import (
@@ -25,6 +23,7 @@ from invenio_records_resources.services.uow import (
 )
 from invenio_requests import current_requests_service
 from invenio_requests.services.results import EntityResolverExpandableField
+from invenio_search.engine import dsl
 from marshmallow.exceptions import ValidationError
 from sqlalchemy.orm.exc import NoResultFound
 
@@ -129,7 +128,7 @@ class CommunityService(RecordService):
             params,
             es_preference,
             permission_action=None,
-            extra_filter=Q("term", **{"receiver.community": community_id}),
+            extra_filter=dsl.Q("term", **{"receiver.community": community_id}),
             **kwargs
         ).execute()
 
@@ -274,11 +273,11 @@ class CommunityService(RecordService):
             identity,
             params,
             es_preference,
-            extra_filter=Bool(
+            extra_filter=dsl.query.Bool(
                 "must",
                 must=[
-                    Q("match", **{"access.visibility": "public"}),
-                    Q("exists", **{"field": "featured.past"}),
+                    dsl.Q("match", **{"access.visibility": "public"}),
+                    dsl.Q("exists", **{"field": "featured.past"}),
                 ],
             ),
             permission_action="featured_search",
